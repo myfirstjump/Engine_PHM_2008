@@ -1,5 +1,6 @@
 from py_module.config import Configuration
 from py_module.data_reader import DataReader
+from py_module.data_preprocessing import DataProprocessing
 
 import os
 
@@ -14,12 +15,16 @@ class EngineCyclePrediction(object):
         data = self.reader_obj.read_csv_data(file_path)
         return data
 
-
+    def data_preprocessing(self, data):
+        
+        data = self.data_preprocessing_obj.data_col_rename(data, self.config_obj.features_name)
+        return(data)
 
 def main_flow():
     
     main_obj = EngineCyclePrediction()
     data = main_obj.data_loading()
+    data = main_obj.data_preprocessing(data)
     print(data)
 
 if __name__ == "__main__":
