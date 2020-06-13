@@ -26,6 +26,20 @@ class DataTraining(object):
         
     def model_design(self, model_name, data, hyperparameters, graph_output_dir=None):
 
+        if model_name == 'Autoencoder':
+            
+            origin_dim = hyperparameters['origin_dim']
+            encoding_dim = hyperparameters['encoding_dim']
+
+
+            input_img = Input(shape=(origin_dim,))
+            encoded = Dense(12, activation='relu')(input_img)
+            encoded = Dense(encoding_dim, activation='relu')(encoded)
+
+            decoded = Dense(12, activation='relu')(encoded)
+            decoded = Dense(origin_dim, activation='sigmoid')(decoded)
+            
+
         if model_name == 'DNN':
             model = tf.keras.models.Sequential([
                 tf.keras.layers.Flatten(),
