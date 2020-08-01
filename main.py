@@ -1,6 +1,7 @@
 from py_module.config import Configuration
 from py_module.data_reader import DataReader
 from py_module.data_preprocessing import DataProprocessing
+<<<<<<< HEAD
 from py_module.learning_definition import LearningDefinition
 
 import os
@@ -13,21 +14,52 @@ class EngineCycleTraining(object):
     2. data preprocessing
     3. data training
     """
+=======
+from py_module.data_exploration import DataExploration
+
+import os
+
+
+    # 小波函數(wavelet) 可以去除雜訊, 諧波基函數, EMD(empirical mode decomposition)???
+    # ARIMA + NN
+    # DLSTM
+    # 模型結構撰寫，擷取AE前半段Encoder部分加入模型
+
+class EngineCyclePrediction(object):
+>>>>>>> master
+
+    # Preprocessing
+    #   Define RUL
+    #   Standardization
+    # Feature Extraction
+    #   AE
+    # RUL Prediction
 
     def __init__(self):
         self.config_obj = Configuration()
         self.reader_obj = DataReader()
         self.data_preprocessing_obj = DataProprocessing()
+<<<<<<< HEAD
         self.learning_define_obj = LearningDefinition()
+=======
+        self.data_exploration_obj = DataExploration()
+>>>>>>> master
 
     def data_loading(self):
         file_path = os.path.join(self.config_obj.data_folder, self.config_obj.file_name)
         data = self.reader_obj.read_csv_data(file_path)
+<<<<<<< HEAD
         
+=======
+
+        test_file_path = os.path.join(self.config_obj.test_data_folder, self.config_obj.test_file_name)
+        testing_data = self.reader_obj.read_csv_data(test_file_path)
+>>>>>>> master
         return data
 
     def data_preprocessing(self, data):
         
+<<<<<<< HEAD
         data = self.data_preprocessing_obj.data_col_rename(data, self.config_obj.features_name)
         data = self.data_preprocessing_obj.data_col_remove(data, ['sensor_22', "sensor_23"])
 
@@ -57,18 +89,32 @@ class EngineCycleTraining(object):
         
 
 
+=======
+        data = self.data_preprocessing_obj.data_preprocessing_2008_PHM_Engine_data(data, self.config_obj.features_name)
+        data = self.data_preprocessing_obj.features_standardization(data, self.config_obj.standardization_features)
+        
+        return(data)
+>>>>>>> master
 
+    def data_exploration(self, data):
+        
+        self.data_exploration_obj.data_exploration_2008_PHM_Engine_data(data)
 
 def main_flow():
     
     main_obj = EngineCycleTraining()
     data = main_obj.data_loading()
     data = main_obj.data_preprocessing(data)
+<<<<<<< HEAD
     train_data, test_data = main_obj.learning_define(data)
 
     train_data_unit = main_obj.data_queue(train_data)
 
     # print(data)
+=======
+    main_obj.data_exploration(data)
+    print(data)
+>>>>>>> master
 
 if __name__ == "__main__":
     main_flow()
