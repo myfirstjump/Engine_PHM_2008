@@ -1,49 +1,19 @@
 import pandas as pd
-<<<<<<< HEAD
-=======
-import numpy as np
-
-from py_module.config import Configuration
-
-from sklearn.preprocessing import StandardScaler
->>>>>>> master
 
 class DataProprocessing(object):
 
     def __init__(self):
-<<<<<<< HEAD
         pass
 
     def data_col_rename(self, data, new_col_name):
-=======
-        self.config_obj = Configuration()
-        pass
-
-    def data_preprocessing_2008_PHM_Engine_data(self, data, new_col_name):
-
-        data = self.data_col_rename(data, new_col_name)
-        data = data.drop(labels=['sensor_22', 'sensor_23'], axis='columns')
-        data = self.define_and_add_RUL_column(data)
-        data = self.clip_variables(data, variable='RUL', max_=130, min_=0)
-
-        return data
-
-    def data_col_rename(self, data, new_col_name):
-        """
-        Function:
-
-        """
->>>>>>> master
 
         data.columns = new_col_name
 
         return data
 
-<<<<<<< HEAD
     def data_col_remove(self, data, rm_col_name):
         
         data = data.drop(rm_col_name, axis=1)
-=======
     def define_and_add_RUL_column(self, data):
 
         """
@@ -81,6 +51,5 @@ class DataProprocessing(object):
         new_series = pd.Series([max(min(x, max_), min_) for x in series])
 
         data[variable] = new_series
->>>>>>> master
 
         return data

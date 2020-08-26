@@ -1,24 +1,179 @@
-import time
-import os
-import random
-
-import numpy as np
-from tensorflow import keras
-from sklearn import model_selection
-
-from py_module.neural_design import NeuralCalculation, LossDesign
-from py_module.plot_module import PlotDesign
-from py_module.config import Configuration
-from py_module.learning_definition import LearningDefinition
+import pandas as pd
 
 class DataTraining(object):
 
     def __init__(self):
+        pass
+
+    def training_PHM_2008_Engine_data(self, model_string):
+
+        if model_string == 'RNN':
+
+class RnnInTF18(object):
+    def __init__(self):
+        BATCH_START = 0
+        TIME_STEPS = 20
+        BATCH_SIZE = 50
+        INPUT_SIZE = 1
+        OUTPUT_SIZE = 1
+        CELL_SIZE = 32
+        LR = 0.006
+    
+    def get_batch():
+        global BATCH_START, TIME_STEPS
+        # xs shape (50batch, 20steps)
+        xs = np.arange(BATCH_START, BATCH_START+TIME_STEPS*BATCH_SIZE).reshape((BATCH_SIZE, TIME_STEPS)) / (10*np.pi)
+        seq = np.sin(xs)
+
+        # privide same pattern as sin
+        res = 0.3 * np.square(np.cos(xs)) - 0.5 * np.square(np.sin(xs)) + 0.3 * np.cos(xs) - 0.1 * np.sin(xs)
+
+        # given sin is working too
+        # res = np.sin(xs)
+
+        BATCH_START += TIME_STEPS
+        # plt.plot(xs[0, :], res[0, :], 'r', xs[0, :], seq[0, :], 'b--')
+        # plt.show()
+        # returned seq, res and xs: shape (batch, step, input)
+        return [seq[:, :, np.newaxis], res[:, :, np.newaxis], xs]
+
+    class LSTMRNN(object):
+        def __init__(self, n_steps, input_size, output_size, cell_size, batch_size):
+            self.n_steps = n_steps
+            self.input_size = input_size
+            self.output_size = output_size
+            self.cell_size = cell_size
+            self.batch_size = batch_size
+            with tf.name_scope('inputs'):
+                self.xs = tf.placeholder(tf.float32, [None, n_steps, input_size], name='xs')
+                self.ys = tf.placeholder(tf.float32, [None, n_steps, output_size], name='ys')
+            with tf.variable_scope('in_hidden'):
+                self.add_input_layer()
+            with tf.variable_scope('LSTM_cell'):
+                self.add_cell()
+            with tf.variable_scope('out_hidden'):
+                self.add_output_layer()
+            with tf.name_scope('cost'):
+                self.compute_cost()
+            with tf.name_scope('train'):
+                self.train_op = tf.train.AdamOptimizer(LR).minimize(self.cost)
+
+        def add_input_layer(self,):
+            l_in_x = tf.reshape(self.xs, [-1, self.input_size], name='2_2D')  # (batch*n_step, in_size)
+            # Ws (in_size, cell_size)
+            Ws_in = self._weight_variable([self.input_size, self.cell_size])
+            # bs (cell_size, )
+            bs_in = self._bias_variable([self.cell_size,])
+            # l_in_y = (batch * n_steps, cell_size)
+            with tf.name_scope('Wx_plus_b'):
+                l_in_y = tf.matmul(l_in_x, Ws_in) + bs_in
+            # reshape l_in_y ==> (batch, n_steps, cell_size)
+            self.l_in_y = tf.reshape(l_in_y, [-1, self.n_steps, self.cell_size], name='2_3D')
+
+        def add_cell(self):
+            lstm_cell = rnn.BasicLSTMCell(self.cell_size, forget_bias=1.0, state_is_tuple=True)
+            with tf.name_scope('initial_state'):
+                self.cell_init_state = lstm_cell.zero_state(self.batch_size, dtype=tf.float32)
+            self.cell_outputs, self.cell_final_state = tf.nn.dynamic_rnn(
+                lstm_cell, self.l_in_y, initial_state=self.cell_init_state, time_major=False)
+
+        def add_output_layer(self):
+            # shape = (batch * steps, cell_size)
+            l_out_x = tf.reshape(self.cell_outputs, [-1, self.cell_size], name='2_2D')
+            Ws_out = self._weight_variable([self.cell_size, self.output_size])
+            bs_out = self._bias_variable([self.output_size, ])
+            # shape = (batch * steps, output_size)
+            with tf.name_scope('Wx_plus_b'):
+                self.pred = tf.matmul(l_out_x, Ws_out) + bs_out
+
+        def compute_cost(self):
+            with tf.name_scope('average_cost'):
+                self.cost = tf.div(
+                    tf.reduce_sum(self.ms_error(
+                    tf.reshape(self.pred, [-1], name='reshape_pred'),
+                    tf.reshape(self.ys,   [-1], name='reshape_target')), name='losses_sum'),
+                    self.batch_size,
+                    name='average_cost')
+                tf.summary.scalar('cost', self.cost)
+
+        def ms_error(self, y_pre, y_target):
+            return tf.square(tf.subtract(y_pre, y_target))
+
+        def _weight_variable(self, shape, name='weights'):
+            initializer = tf.random_normal_initializer(mean=0., stddev=1.,)
+            return tf.get_variable(shape=shape, initializer=initializer, name=name)
+
+        def _bias_variable(self, shape, name='biases'):
+            initializer = tf.constant_initializer(0.1)
+            return tf.get_variable(name=name, shape=shape, initializer=initializer)
+            
+
+if __name__ == '__main__':
+    model = LSTMRNN(TIME_STEPS, INPUT_SIZE, OUTPUT_SIZE, CELL_SIZE, BATCH_SIZE)
+    sess = tf.Session()
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter("logs", sess.graph)
+    
+    sess.run(tf.global_variables_initializer())
+    # $ tensorboard --logdir='logs'
+
+    plt.ion()
+    plt.show()
+    for i in range(200):
+        seq, res, xs = get_batch()
+        if i == 0:
+            feed_dict = {
+                    model.xs: seq,
+                    model.ys: res,
+                    # create initial state
+            }
+        else:
+            feed_dict = {
+                model.xs: seq,
+                model.ys: res,
+                model.cell_init_state: state    # use last state as the initial state for this run
+            }
+
+        _, cost, state, pred = sess.run(
+            [model.train_op, model.cost, model.cell_final_state, model.pred],
+            feed_dict=feed_dict)
+
+        # plotting
+
+	# print('xs:')
+	# print(xs[0,:])
+	# print('pred:')
+	# print(pred.flatten()[:TIME_STEPS])
+
+	# only the first 20 samples are ploted
+        plt.plot(xs[0, :], res[0].flatten(), 'r', xs[0, :], pred.flatten()[:TIME_STEPS], 'b--')
+
+	# entirely plot the all 50x20 samples
+        # plt.plot(xs[:].flatten(), res[:].flatten(), 'r', xs[:].flatten(), pred[:].flatten(), 'b--')
+
+        plt.ylim((-1.2, 1.2))
+        plt.draw()
+        plt.pause(0.3)
+
+        if i % 20 == 0:
+            print('cost: ', round(cost, 4))
+            result = sess.run(merged, feed_dict)
+            writer.add_summary(result, i)
+import time
+
+import numpy as np
+
+import tensorflow as tf
+from tensorflow import keras
+
+from neural_design import NeuralCalculation, LossDesign
+from plot_module import PlotDesign
+
+class DataTraining(object):
+    def __init__(self):
         self.neural_obj = NeuralCalculation()
         self.loss_obj = LossDesign()
         self.plot_obj = PlotDesign()
-        self.config_obj = Configuration()
-        self.learing_def_obj = LearningDefinition()
 
     def sys_show_execution_time(method):
         def time_record(*args, **kwargs):
@@ -29,72 +184,8 @@ class DataTraining(object):
             print('Running function:', method.__name__, ' cost time:', execution_time, 'seconds.')
             return result
         return time_record
-
-    def training_PHM_2008_Engine_data(self, data, epochs):
         
-        # Split train/valid
-        train_units, valid_units = model_selection.train_test_split([i+1 for i in range(self.config_obj.train_engine_number)], test_size=0.2)
-
-        # Produce generator for differenet engine unit
-        def yield_unit_data(data, train_valid_units, epochs=epochs):
-            cnt = 0
-            while cnt < epochs:
-                which_unit = random.choice(train_valid_units)
-                unit_data = data[data['unit'] == which_unit]
-                cnt += 1
-                yield which_unit, unit_data
-        train_data_generator = yield_unit_data(data, train_units, epochs)
-
-        # Training
-        checkpoint_path = self.config_obj.checkpoint_path
-        h5_path = self.config_obj.keras_model_path
-        my_history = {'train_loss':[], 'valid_loss':[]}
-        model = self.model_design('RNN')
-
-        for train_unit_num, train_data in train_data_generator:
-
-            print("======================================= Training Epoch {} =====================================".format(training_cnt))
-
-            valid_unit_num, valid_data = [(valid_unit_num, valid_data) for (valid_unit_num, valid_data) in yield_unit_data(data, valid_units, 1)][0]
-
-            train_data = self.learing_def_obj.learning_define_2008_PHM_Engine_data(train_data)
-            valid_data = self.learing_def_obj.learning_define_2008_PHM_Engine_data(valid_data)
-            print("以引擎 unit: {} 做為training data.".format(train_unit_num))
-            print("以引擎 unit: {} 做為validation data.".format(valid_unit_num))
-
-            train_x = train_data.values[:,:-1]
-            train_y = train_data.values[:, -1]
-            valid_x = valid_data.values[:,:-1]
-            valid_y = valid_data.values[:, -1]
-
-            # Reshape
-            train_x = train_x.reshape((train_x.shape[0], self.config_obj.previous_p_times + 1, self.config_obj.features_num))
-            valid_x = valid_x.reshape((valid_x.shape[0], self.config_obj.previous_p_times + 1, self.config_obj.features_num))
-
-            # 
-            model.reset_states()
-            model, history = self.RNN_model_training(model, (train_x, train_y, valid_x, valid_y), checkpoint_path)
-
-            print(history.history['loss'], history.history['val_loss'])
-            my_history['train_loss'].append(history.history['loss'][0])
-            my_history['valid_loss'].append(history.history['val_loss'][0])
-            training_cnt += 1
-        model.save(h5_path)
-        return my_history
-
-
-        
-    def model_design(self, model_name, graph_output_dir=None):
-        
-        if model_name == 'RNN':
-
-            model = keras.models.Sequential()
-            model.add(keras.layers.GRU(64, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
-            model.add(keras.layers.GRU(64, return_sequences=True))
-            model.add(keras.layers.GRU(32, return_sequences=True))
-            model.add(keras.layers.Dense(32))
-            model.add(keras.layers.Dense(16))
-            model.add(keras.layers.Dense(1)))
+    def model_design(self, model_name, data, hyperparameters, graph_output_dir=None):
 
         if model_name == 'Autoencoder':
             
@@ -187,17 +278,7 @@ class DataTraining(object):
 
         return model
 
-    @sys_show_execution_time
-    def RNN_model_training(self, model, data, checkpoint_path):
-        
-        train_x, train_y, valid_x, valid_y = data
-        model.compile(optimizer = keras.optimizers.RMSprop(), loss = 'mse', metrics = ['accuracy'])
-        earlystopping = keras.callbacks.Earlystopping(monitor='val_loss', mode='min', patience=30, restore_best_weights=True)
-        cp_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
-        callbacks= [earlystopping, cp_callback]
-        history = model.fit(train_x, train_y, epochs=1, batch_size=16, validation_data=(valid_x, valid_y), verbose=2, shuffle=False)
 
-        return model, history
 
     @sys_show_execution_time
     def model_training(self, model, data):
