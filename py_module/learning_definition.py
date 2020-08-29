@@ -12,45 +12,39 @@ class LearningDefinition(object):
 
     def learning_define_2008_PHM_Engine_data(self, data):
 
-        engine_num = np.max(data.unit)
+        unit_data = data
+        nrow = len(unit_data.index)
+        unit_data.pop('unit')
+        # print('Engine Unit:{} with cycles:{}'.format(unit, nrow))
+        unit_RUL = unit_data.pop('RUL')
+        new_unit = self.pre_timesteps_supervised(unit_data, unit_RUL, n_features=self.config_obj.features_num, n_in=self.config_obj.previous_p_times)
 
-        # Build RUL column for each unit
-        RUL_ = list()
-        for each_unit in range(1, engine_num+1):
+        return new_unit
 
-            sub_data = data[data.unit == each_unit]
-            cycles = np.max(sub_data.cycles)
-            print('Unit:', each_unit, 'has cycles:', cycles)
-            rul = [i for i in range(1, cycles+1)]
-            rul.reverse()
-            RUL_ = RUL_ + rul
-        data['RUL'] = RUL_
+    def pre_timesteps_supervised(self, data, target, n_features=5, n_in=1, n_out=1, dropnan=True):
 
-        return data
+        n_vars = 1 if type(data) is list else data.shape[1]
+        df = pd.DataFrame(data)
+        cols, names = list(), list()
 
-    def train_test_split_2008_PHM_Engine_data(self, data):
 
-        engine_num = np.max(data.unit)
+        for i in range(n_in, 0 ,-1):
+            cols.append(df.shift(i))
+            names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
 
-        units = [i for i in range(1, engine_num+1)]
+        for i in range(0, n_out):
+            cols.append(df.shift(-i))
+            if i == 0:
+                names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+            else:
+                names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
 
-        train_units, test_units = model_selection.train_test_split(units, train_size=0.8)
-        # print('Train units:', train_units)
-        # print('Test units:', test_units)
+        agg = pd.concat(cols, axis=1)
+        agg.columns = names
 
-        print('Data shape:', data.shape)
+        if dropnan:
+            agg.dropna(inplace=True)
 
-        train_data = pd.DataFrame(columns=data.columns)
-        test_data = pd.DataFrame(columns=data.columns)
-        for each_unit in train_units:
-            train_data = pd.concat([train_data, data[data.unit==each_unit]])
-        for each_unit in test_units:
-            test_data = pd.concat([test_data, data[data.unit==each_unit]])
+        agg['target'] = target.iloc[n_in:, ].values
 
-        print('Train shape:', train_data.shape)
-        print('Test shape:', test_data.shape)
-
-        return train_data, test_data
-
-    def build_pre_timestep_supervised
-
+        return agg

@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('agg') # As a background for Linux running
+# matplotlib.use('agg') # As a background for Linux running
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
@@ -28,3 +28,10 @@ class PlotDesign(object):
 
     def plot_saving(self, dest_path, filename, suffix):
         plt.savefig(fname=dest_path + filename + '.' + suffix)
+
+    def learning_curve(self, obj):
+
+        plt.plot(obj['train_loss'], label='train')
+        plt.plot(obj['valid_loss'], label='valid')
+        plt.legend()
+        plt.show()

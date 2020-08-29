@@ -5,6 +5,15 @@ class DataProprocessing(object):
     def __init__(self):
         pass
 
+    def data_preprocessing_2008_PHM_Engine_data(self, data, new_col_name):
+
+        data = self.data_col_rename(data, new_col_name)
+        data = self.drop(labels=['sensor_22', 'sensor_23'], axis='columns')
+        data = self.define_and_add_RUL_column(data)
+        data = self.clip_variables(data, variable='RUL', max_=130, min_=0)
+
+        return = data
+
     def data_col_rename(self, data, new_col_name):
 
         data.columns = new_col_name
