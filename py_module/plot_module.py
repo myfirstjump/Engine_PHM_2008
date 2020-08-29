@@ -35,3 +35,10 @@ class PlotDesign(object):
         plt.plot(obj['valid_loss'], label='valid')
         plt.legend()
         plt.show()
+
+    def plot_RUL_prediction(self, pred_y, true_y):
+
+        plt.plot(true_y, label='True')
+        plt.plot(pred_y, label='Prediction')
+        plt.legend()
+        plt.show()

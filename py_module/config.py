@@ -15,6 +15,7 @@ class Configuration(object):
 
         # 2008 Engine Data
         self.train_engine_number = 218
+        self.test_engine_number = 218
         self.standardization_features = ['cycle', 'op_setting_1', 'op_setting_2', 'op_setting_3'] + ['sensor_' + str(i) for i in range(1, 22)]
         self.previous_p_times = 5
         self.checkpoint_path = self.data_folder + "\\training_record\\cp.ckpt"

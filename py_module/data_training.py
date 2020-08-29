@@ -3,6 +3,7 @@ import os
 import random
 
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 from sklearn import model_selection
 
@@ -30,7 +31,7 @@ class DataTraining(object):
             return result
         return time_record
 
-    def training_PHM_2008_Engine_data(self, data, epochs):
+    def training_2008_PHM_Engine_data(self, data, epochs):
         
         # Split train/valid
         train_units, valid_units = model_selection.train_test_split([i+1 for i in range(self.config_obj.train_engine_number)], test_size=0.2)
@@ -50,6 +51,7 @@ class DataTraining(object):
         h5_path = self.config_obj.keras_model_path
         my_history = {'train_loss':[], 'valid_loss':[]}
         model = self.model_design('RNN')
+        training_cnt = 1
 
         for train_unit_num, train_data in train_data_generator:
 
@@ -91,10 +93,10 @@ class DataTraining(object):
             model = keras.models.Sequential()
             model.add(keras.layers.GRU(64, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
             model.add(keras.layers.GRU(64, return_sequences=True))
-            model.add(keras.layers.GRU(32, return_sequences=True))
+            model.add(keras.layers.GRU(32))
             model.add(keras.layers.Dense(32))
             model.add(keras.layers.Dense(16))
-            model.add(keras.layers.Dense(1)))
+            model.add(keras.layers.Dense(1))
 
         if model_name == 'Autoencoder':
             
@@ -192,9 +194,9 @@ class DataTraining(object):
         
         train_x, train_y, valid_x, valid_y = data
         model.compile(optimizer = keras.optimizers.RMSprop(), loss = 'mse', metrics = ['accuracy'])
-        earlystopping = keras.callbacks.Earlystopping(monitor='val_loss', mode='min', patience=30, restore_best_weights=True)
-        cp_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
-        callbacks= [earlystopping, cp_callback]
+        # earlystopping = keras.callbacks.Earlystopping(monitor='val_loss', mode='min', patience=30, restore_best_weights=True)
+        # cp_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
+        # callbacks= [earlystopping, cp_callback]
         history = model.fit(train_x, train_y, epochs=1, batch_size=16, validation_data=(valid_x, valid_y), verbose=2, shuffle=False)
 
         return model, history
