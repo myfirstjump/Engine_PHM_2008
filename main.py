@@ -87,7 +87,7 @@ def main_flow():
     testing_data = main_obj.data_preprocessing(testing_data)
     # main_obj.data_exploration(data)
 
-    # my_history = main_obj.model_training(data)
+    my_history = main_obj.model_training(data)
 
     # main_obj.plotting_function(my_history)
 
