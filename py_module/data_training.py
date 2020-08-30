@@ -51,6 +51,7 @@ class DataTraining(object):
         h5_path = self.config_obj.keras_model_path
         my_history = {'train_loss':[], 'valid_loss':[]}
         model = self.model_design('RNN')
+        model.compile(optimizer = keras.optimizers.RMSprop(), loss = 'mse', metrics = ['accuracy'])
         training_cnt = 1
 
         for train_unit_num, train_data in train_data_generator:
@@ -193,7 +194,6 @@ class DataTraining(object):
     def RNN_model_training(self, model, data, checkpoint_path):
         
         train_x, train_y, valid_x, valid_y = data
-        model.compile(optimizer = keras.optimizers.RMSprop(), loss = 'mse', metrics = ['accuracy'])
         # earlystopping = keras.callbacks.Earlystopping(monitor='val_loss', mode='min', patience=30, restore_best_weights=True)
         # cp_callback = keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
         # callbacks= [earlystopping, cp_callback]
