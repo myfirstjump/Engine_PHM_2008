@@ -87,10 +87,16 @@ def main_flow():
     testing_data = main_obj.data_preprocessing(testing_data)
     # main_obj.data_exploration(data)
 
+<<<<<<< Updated upstream
     my_history = main_obj.model_training(data)
 
+=======
+    # Training
+    # my_history = main_obj.model_training(data)
+>>>>>>> Stashed changes
     # main_obj.plotting_function(my_history)
 
+    ### Evaluation
     main_obj.data_evaluation(testing_data)
 
 if __name__ == "__main__":

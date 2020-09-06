@@ -43,4 +43,4 @@ class DataEvaluation(object):
         
         # plotting
 
-        self.plotting_obj.plot_RUL_prediction(pred_y=predict_y, true_y=test_y)
+        self.plotting_obj.plot_RUL_prediction(pred_y=predict_y, true_y=test_y, main_unit=test_unit_num)

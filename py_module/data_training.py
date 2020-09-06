@@ -31,6 +31,7 @@ class DataTraining(object):
             return result
         return time_record
 
+    @sys_show_execution_time
     def training_2008_PHM_Engine_data(self, data, epochs):
         
         # Split train/valid
@@ -49,8 +50,12 @@ class DataTraining(object):
         # Training
         checkpoint_path = self.config_obj.checkpoint_path
         h5_path = self.config_obj.keras_model_path
+        new_h5_path = self.keras_updated_model_path
         my_history = {'train_loss':[], 'valid_loss':[]}
-        model = self.model_design('RNN')
+        if os.path.isfile(h5_path):
+            model = keras.models.load_model(h5_path)
+        else:
+            model = self.model_design('RNN')
         training_cnt = 1
 
         for train_unit_num, train_data in train_data_generator:
@@ -81,7 +86,7 @@ class DataTraining(object):
             my_history['train_loss'].append(history.history['loss'][0])
             my_history['valid_loss'].append(history.history['val_loss'][0])
             training_cnt += 1
-        model.save(h5_path)
+        model.save(new_h5_path)
         return my_history
 
 

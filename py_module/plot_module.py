@@ -36,9 +36,10 @@ class PlotDesign(object):
         plt.legend()
         plt.show()
 
-    def plot_RUL_prediction(self, pred_y, true_y):
+    def plot_RUL_prediction(self, pred_y, true_y, main_unit):
 
         plt.plot(true_y, label='True')
         plt.plot(pred_y, label='Prediction')
+        plt.title("Engine Number # {} RUL Prediction".format(main_unit))
         plt.legend()
         plt.show()

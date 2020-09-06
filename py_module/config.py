@@ -18,5 +18,11 @@ class Configuration(object):
         self.test_engine_number = 218
         self.standardization_features = ['cycle', 'op_setting_1', 'op_setting_2', 'op_setting_3'] + ['sensor_' + str(i) for i in range(1, 22)]
         self.previous_p_times = 5
+<<<<<<< Updated upstream
         self.checkpoint_path = os.path.join(self.data_folder, "training_record", "cp.ckpt")
         self.keras_model_path = os.path.join(self.data_folder, "training_record", "keras_model", "model.h5" )
+=======
+        self.checkpoint_path = self.data_folder + "\\training_record\\cp.ckpt"
+        self.keras_model_path = self.data_folder + "\\training_record\\keras_model\\109-08-29_model.h5"
+        self.keras_updated_model_path = self.data_folder + "\\training_record\\keras_model\\109-08-29_model.h5"
+>>>>>>> Stashed changes
