@@ -6,6 +6,7 @@ from py_module.learning_definition import LearningDefinition
 from py_module.data_training import DataTraining
 from py_module.plot_module import PlotDesign
 from py_module.data_evaluation import DataEvaluation
+from py_module.data_training_tf18 import DataTrainingTF18
 
 import os
 
@@ -35,6 +36,7 @@ class EngineCycleTraining(object):
         self.training_obj = DataTraining()
         self.plotting_obj = PlotDesign()
         self.evaluation_obj = DataEvaluation()
+        self.training_tf18_obj = DataTrainingTF18()
 
     def data_loading(self):
         file_path = os.path.join(self.config_obj.data_folder, self.config_obj.file_name)
@@ -66,7 +68,7 @@ class EngineCycleTraining(object):
 
     def model_training(self, data):
 
-        my_history = self.training_obj.training_2008_PHM_Engine_data(data, epochs=30)
+        my_history = self.training_obj.training_2008_PHM_Engine_data(data, epochs=150)
         
         return my_history
 
@@ -78,6 +80,11 @@ class EngineCycleTraining(object):
         
         self.evaluation_obj.data_evaluation_2008_PHM_Engine_data(test_data)
 
+    def data_training_tf18(self, data):
+
+        self.training_tf18_obj.training_PHM_2008_Engine_data(data, model_string="RNN")
+
+
 
 def main_flow():
     
@@ -87,17 +94,15 @@ def main_flow():
     testing_data = main_obj.data_preprocessing(testing_data)
     # main_obj.data_exploration(data)
 
-<<<<<<< Updated upstream
-    my_history = main_obj.model_training(data)
-
-=======
     # Training
     # my_history = main_obj.model_training(data)
->>>>>>> Stashed changes
     # main_obj.plotting_function(my_history)
 
     ### Evaluation
-    main_obj.data_evaluation(testing_data)
+    # main_obj.data_evaluation(testing_data)
+
+    ### Code Test
+    main_obj.data_training_tf18(data)
 
 if __name__ == "__main__":
     main_flow()
