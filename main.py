@@ -68,7 +68,7 @@ class EngineCycleTraining(object):
 
     def model_training(self, data):
 
-        my_history = self.training_obj.training_2008_PHM_Engine_data(data, epochs=50, load_model = False)
+        my_history = self.training_obj.training_2008_PHM_Engine_data(data, epochs=30, load_model = False)
     #     hyperparameters = {'batch_szie':[8,16,32,64, 128], "epochs":[10, 30, 50, 100, 200, 300], }
     #     self.training_obj.grid_search_with_cross_validation(hyperparameters, "data", "cv_fold", "preprocessing_function", "training_function", "scoring_metric")
         
@@ -102,6 +102,8 @@ def main_flow():
     main_obj.plotting_function(my_history)
 
     ### Evaluation
+    # while(True):
+    #     main_obj.data_evaluation(testing_data)
     main_obj.data_evaluation(testing_data)
 
     ### Code Test

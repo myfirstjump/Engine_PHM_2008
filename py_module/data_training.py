@@ -35,17 +35,11 @@ class DataTraining(object):
     ### custom loss
     def custom_loss_function(self, y_true, y_pred):
 
-        print("y_true:", y_true)
-        
+        # print("y_true:", y_true)
         diff_vec = y_true - y_pred
         def each_loss_apply(d):
-            print("d:", d)
-            diff_value = tf.cond(d<0, true_fn=lambda: tf.exp(-d/13)-1, false_fn=lambda: tf.exp(d/10)-1)
-            # if d < 0:
-            #     diff_value = tf.exp(-d/10)-1
-            # else:
-            #     diff_value = tf.exp(d/13)-1
-            print("d_adjust:", diff_value)
+            diff_value = tf.cond(d<0, true_fn=lambda: tf.exp(-d/9)-1, false_fn=lambda: tf.exp(d/13)-1)
+            # diff_value = tf.cond(d<0, true_fn=lambda: -5*d, false_fn=lambda: tf.exp(d/8)-1)
             return diff_value
         diff_vec = tf.map_fn(each_loss_apply, diff_vec)
 
@@ -145,7 +139,9 @@ class DataTraining(object):
 
             ### overfit if
             dropout_rate = 0.5
-            model.add(keras.layers.GRU(64, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
+            model.add(keras.layers.GRU(128, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
+            model.add(keras.layers.GRU(64, return_sequences=True))
             model.add(keras.layers.Dropout(rate = dropout_rate))
             model.add(keras.layers.GRU(64, return_sequences=True))
             model.add(keras.layers.Dropout(rate = dropout_rate))

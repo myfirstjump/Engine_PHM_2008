@@ -23,7 +23,8 @@ class DataEvaluation(object):
 
         h5_path = self.config_obj.keras_model_path
         model = keras.models.load_model(h5_path, compile=False)
-        model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.training_obj.custom_loss_function, metrics = ['mse'])
+        # model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.training_obj.custom_loss_function, metrics = ['mse'])
+        model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.training_obj.custom_loss_function)
 
         def yield_unit_data(data, train_valid_units, epochs):
             cnt = 0
@@ -46,7 +47,25 @@ class DataEvaluation(object):
 
         test_x = test_x.reshape((test_x.shape[0], self.config_obj.previous_p_times + 1, self.config_obj.features_num))
         predict_y = model.predict(test_x)
-        
-        # plotting
 
+        # plotting
         self.plotting_obj.plot_RUL_prediction(pred_y=predict_y, true_y=test_y, main_unit=test_unit_num)
+
+        # score calculate
+
+        # results = model.evaluate(test_x, test_y, batch_size=None)
+        # print("Evaluate Results:", results) # loss
+        scores = []
+        for test_unit_num in [i+1 for i in range(self.config_obj.test_engine_number)]:
+            
+            test_data = data[data['unit'] == test_unit_num]
+            test_data = self.learing_def_obj.learning_define_2008_PHM_Engine_data(test_data)
+            test_x = test_data.values[:,:-1]
+            test_y = test_data.values[:, -1]
+            test_x = test_x.reshape((test_x.shape[0], self.config_obj.previous_p_times + 1, self.config_obj.features_num))
+            results = model.evaluate(test_x, test_y, batch_size=None)
+            scores.append(results)
+            print('-----> Model has loss {} on engine {}'.format(results, test_unit_num))
+        print("Total average score:", np.mean(scores))
+
+
