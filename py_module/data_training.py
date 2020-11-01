@@ -1,6 +1,7 @@
 import time
 import os
 import random
+import itertools
 
 import numpy as np
 import tensorflow as tf
@@ -31,8 +32,33 @@ class DataTraining(object):
             return result
         return time_record
 
+    ### custom loss
+    def custom_loss_function(self, y_true, y_pred):
+
+        print("y_true:", y_true)
+        
+        diff_vec = y_true - y_pred
+        def each_loss_apply(d):
+            print("d:", d)
+            diff_value = tf.cond(d<0, true_fn=lambda: tf.exp(-d/13)-1, false_fn=lambda: tf.exp(d/10)-1)
+            # if d < 0:
+            #     diff_value = tf.exp(-d/10)-1
+            # else:
+            #     diff_value = tf.exp(d/13)-1
+            print("d_adjust:", diff_value)
+            return diff_value
+        diff_vec = tf.map_fn(each_loss_apply, diff_vec)
+
+        return tf.reduce_mean(diff_vec)
+
+
+    # def grid_search_with_cross_validation(self, hyperparameters, data, cv_fold, preprocessing_function, training_function, scoring_metric):
+
+    #     for element in itertools.product(*hyperparameters):
+    #         print(element)
+
     @sys_show_execution_time
-    def training_2008_PHM_Engine_data(self, data, epochs):
+    def training_2008_PHM_Engine_data(self, data, epochs, load_model = True):
         
         # Split train/valid
         train_units, valid_units = model_selection.train_test_split([i+1 for i in range(self.config_obj.train_engine_number)], test_size=0.2)
@@ -47,16 +73,27 @@ class DataTraining(object):
                 yield which_unit, unit_data
         train_data_generator = yield_unit_data(data, train_units, epochs)
 
-        # Training
+        ### mse loss
+        # def custom_loss_function(y_true, y_pred):
+        #     squared_difference = tf.square(y_true - y_pred)
+        #     return tf.reduce_mean(squared_difference, axis=-1)
+
         checkpoint_path = self.config_obj.checkpoint_path
         h5_path = self.config_obj.keras_model_path
         new_h5_path = self.config_obj.keras_updated_model_path
         my_history = {'train_loss':[], 'valid_loss':[]}
-        if os.path.isfile(h5_path):
-            model = keras.models.load_model(h5_path)
+
+        ### load model or not
+        if load_model:
+            if os.path.isfile(h5_path):
+                model = keras.models.load_model(h5_path)
+            else:
+                model = self.model_design('RNN')
+            model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.custom_loss_function, metrics = ['mse'])
         else:
             model = self.model_design('RNN')
-        model.compile(optimizer = keras.optimizers.RMSprop(), loss = 'mse', metrics = ['accuracy'])
+            model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.custom_loss_function, metrics = ['mse'])
+
         training_cnt = 1
 
         for train_unit_num, train_data in train_data_generator:
@@ -98,11 +135,28 @@ class DataTraining(object):
         if model_name == 'RNN':
 
             model = keras.models.Sequential()
+
+            ### normal
+            # model.add(keras.layers.GRU(64, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
+            # model.add(keras.layers.GRU(64, return_sequences=True))
+            # model.add(keras.layers.GRU(32))
+            # model.add(keras.layers.Dense(32))
+            # model.add(keras.layers.Dense(16))
+
+            ### overfit if
+            dropout_rate = 0.5
             model.add(keras.layers.GRU(64, input_shape=(self.config_obj.previous_p_times+1, self.config_obj.features_num), return_sequences=True))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
             model.add(keras.layers.GRU(64, return_sequences=True))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
             model.add(keras.layers.GRU(32))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
             model.add(keras.layers.Dense(32))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
             model.add(keras.layers.Dense(16))
+            model.add(keras.layers.Dropout(rate = dropout_rate))
+
+
             model.add(keras.layers.Dense(1))
 
         if model_name == 'Autoencoder':
@@ -144,7 +198,7 @@ class DataTraining(object):
             # 1. Separately define G_net and D_net    <-   We use this.
             # 2. Define the hidden layer involve G and D. Fix the G weigths when training D, and vice versa.
             
-            seed = hyperparameters['seed']
+            seed = hyperparameters[' ']
             batch_size = hyperparameters['batch_size']
             X_dim = hyperparameters['X_dim']
             z_dim = hyperparameters['z_dim']

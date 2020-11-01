@@ -9,6 +9,7 @@ from tensorflow import keras
 from py_module.config import Configuration
 from py_module.plot_module import PlotDesign
 from py_module.learning_definition import LearningDefinition
+from py_module.data_training import DataTraining
 
 class DataEvaluation(object):
 
@@ -16,12 +17,13 @@ class DataEvaluation(object):
         self.config_obj = Configuration()
         self.plotting_obj = PlotDesign()
         self.learing_def_obj = LearningDefinition()
+        self.training_obj = DataTraining()
 
     def data_evaluation_2008_PHM_Engine_data(self, data):
 
-
         h5_path = self.config_obj.keras_model_path
-        model = keras.models.load_model(h5_path)
+        model = keras.models.load_model(h5_path, compile=False)
+        model.compile(optimizer = keras.optimizers.RMSprop(), loss = self.training_obj.custom_loss_function, metrics = ['mse'])
 
         def yield_unit_data(data, train_valid_units, epochs):
             cnt = 0
@@ -31,6 +33,10 @@ class DataEvaluation(object):
                 cnt += 1
                 yield which_unit, unit_data
         test_unit_num, test_data = [(test_unit_num, test_data) for (test_unit_num, test_data) in yield_unit_data(data, [i+1 for i in range(self.config_obj.test_engine_number)], 1)][0]
+
+        # def custom_loss_function(y_true, y_pred):
+        #     squared_difference = tf.square(y_true - y_pred)
+        #     return tf.reduce_mean(squared_difference, axis=-1)
 
         test_data = self.learing_def_obj.learning_define_2008_PHM_Engine_data(test_data)
         print("以引擎 unit: {} 做為testing data.".format(test_unit_num))
